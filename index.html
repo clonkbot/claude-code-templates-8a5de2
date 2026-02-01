@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Code Templates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-primary: #0a0a0b;
+        --bg-secondary: #131315;
+        --bg-card: #1a1a1d;
+        --accent-coral: #e85a4f;
+        --accent-orange: #f5a623;
+        --accent-green: #4ade80;
+        --text-primary: #f5f5f5;
+        --text-muted: #6b7280;
+        --border-color: #2a2a2d;
+      }
+      
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) var(--bg-primary);
+      }
+      
+      body {
+        background: var(--bg-primary);
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-primary);
+      }
+      
+      .pixel-font {
+        font-family: 'Press Start 2P', cursive;
+      }
+      
+      .space-font {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      
+      @keyframes scanline {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100vh); }
+      }
+      
+      @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+      }
+      
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 5px var(--accent-coral), 0 0 10px rgba(232, 90, 79, 0.3); }
+        50% { box-shadow: 0 0 15px var(--accent-coral), 0 0 30px rgba(232, 90, 79, 0.5); }
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+      
+      @keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      
+      .scanline-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.1) 2px,
+          rgba(0, 0, 0, 0.1) 4px
+        );
+        z-index: 1000;
+        opacity: 0.3;
+      }
+      
+      .gradient-text {
+        background: linear-gradient(90deg, #e85a4f, #f5a623, #e85a4f);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: gradient-shift 3s ease infinite;
+      }
+      
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 0 1px var(--accent-coral), 0 20px 40px rgba(232, 90, 79, 0.15);
+      }
+      
+      .tab-active {
+        background: linear-gradient(135deg, rgba(232, 90, 79, 0.2), rgba(245, 166, 35, 0.1));
+        border-color: var(--accent-coral);
+      }
+      
+      .cursor-blink::after {
+        content: '▋';
+        animation: blink 1s infinite;
+        color: var(--accent-coral);
+      }
+      
+      .noise-bg {
+        position: relative;
+      }
+      
+      .noise-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        opacity: 0.03;
+        pointer-events: none;
+      }
+      
+      .glow-dot {
+        box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+      }
+      
+      .robot-icon {
+        filter: drop-shadow(0 0 8px rgba(232, 90, 79, 0.4));
+      }
+      
+      .step-card {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .step-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent-coral), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      .step-card:hover::before {
+        opacity: 1;
+      }
+      
+      .search-input:focus {
+        box-shadow: 0 0 0 2px rgba(232, 90, 79, 0.3), inset 0 0 20px rgba(232, 90, 79, 0.05);
+      }
+      
+      .category-chip {
+        transition: all 0.2s;
+      }
+      
+      .category-chip:hover {
+        background: rgba(232, 90, 79, 0.15);
+        border-color: var(--accent-coral);
+        color: var(--accent-coral);
+      }
+      
+      .add-card {
+        border: 2px dashed var(--border-color);
+        background: transparent;
+      }
+      
+      .add-card:hover {
+        border-color: var(--accent-coral);
+        background: rgba(232, 90, 79, 0.05);
+      }
+      
+      .badge-count {
+        background: linear-gradient(135deg, rgba(232, 90, 79, 0.3), rgba(245, 166, 35, 0.2));
+      }
+      
+      .copy-btn {
+        transition: all 0.2s;
+      }
+      
+      .copy-btn:hover {
+        background: var(--accent-coral);
+        color: white;
+      }
+      
+      @keyframes fade-in-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .animate-fade-in {
+        animation: fade-in-up 0.5s ease-out forwards;
+      }
+      
+      .delay-100 { animation-delay: 0.1s; }
+      .delay-200 { animation-delay: 0.2s; }
+      .delay-300 { animation-delay: 0.3s; }
+      .delay-400 { animation-delay: 0.4s; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
